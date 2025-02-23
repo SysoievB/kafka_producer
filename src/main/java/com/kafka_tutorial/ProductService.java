@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
@@ -25,23 +26,25 @@ public class ProductService {
                         createProductDto.quantity()
                 ))
                 .map(productCreateEvent -> {
-                    CompletableFuture<SendResult<String, ProductCreateEvent>> future =
-                            kafkaTemplate.send(
-                                    "product-created-event-topic",
-                                    productCreateEvent.getProductId(),
-                                    productCreateEvent
-                            );
-                    future.whenComplete((result, error) -> {
-                        if (error != null) {
-                            log.error("*************Error while sending create product event: {}*************", error.getMessage());
-                        } else {
-                            log.info("*************Created product event: {}*************", result.getRecordMetadata());
-                        }
-                    });
-                    log.info("*************Returning product ID*************");
+                    try {
+                        log.info("*************Before creating product event: {}*************", productCreateEvent);
+                        SendResult<String, ProductCreateEvent> result =
+                                kafkaTemplate.send(
+                                        "product-created-event-topic",
+                                        productCreateEvent.getProductId(),
+                                        productCreateEvent
+                                ).get();
+                        log.info("*************Partition: {}*************", result.getRecordMetadata().partition());
+                        log.info("*************Topic: {}*************", result.getRecordMetadata().topic());
+                        log.info("*************Offset: {}*************", result.getRecordMetadata().offset());
+                        log.info("*************Returning product ID*************");
+                        return productCreateEvent.getProductId();
+                    } catch (InterruptedException | ExecutionException e) {
+                        log.error("************* Error while sending create product event: {} *************", e.getMessage());
 
-                    return productCreateEvent.getProductId();
+                        throw new RuntimeException("Kafka send failed: " + e.getMessage(), e);
+                    }
                 })
-                .orElse("");
+                .orElseThrow(() -> new RuntimeException("Failed to create product"));
     }
 }
