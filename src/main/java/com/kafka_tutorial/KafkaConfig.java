@@ -14,8 +14,8 @@ public class KafkaConfig {
     NewTopic createTopic() {
         return TopicBuilder.name("product-created-event-topic")
                 .partitions(3)
-                .replicas(3)
-                .configs(Map.of("min.insync.replicas", "2"))
+                .replicas(1)
+                .configs(Map.of("min.insync.replicas", "1"))
                 .build();
     }
 }
