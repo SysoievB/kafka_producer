@@ -8,37 +8,36 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductService {
-    private final KafkaTemplate<String, ProductCreateEvent> kafkaTemplate;
+    private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
 
     public String createProduct(CreateProductDto createProductDto) {
         return Optional.of(UUID.randomUUID().toString())
-                .map(uuid -> new ProductCreateEvent(
+                .map(uuid -> new ProductCreatedEvent(
                         uuid,
                         createProductDto.title(),
                         createProductDto.price(),
                         createProductDto.quantity()
                 ))
-                .map(productCreateEvent -> {
+                .map(productCreatedEvent -> {
                     try {
-                        log.info("*************Before creating product event: {}*************", productCreateEvent);
-                        SendResult<String, ProductCreateEvent> result =
+                        log.info("*************Before creating product event: {}*************", productCreatedEvent);
+                        SendResult<String, ProductCreatedEvent> result =
                                 kafkaTemplate.send(
                                         "product-created-event-topic",
-                                        productCreateEvent.getProductId(),
-                                        productCreateEvent
+                                        productCreatedEvent.getProductId(),
+                                        productCreatedEvent
                                 ).get();
                         log.info("*************Partition: {}*************", result.getRecordMetadata().partition());
                         log.info("*************Topic: {}*************", result.getRecordMetadata().topic());
                         log.info("*************Offset: {}*************", result.getRecordMetadata().offset());
                         log.info("*************Returning product ID*************");
-                        return productCreateEvent.getProductId();
+                        return productCreatedEvent.getProductId();
                     } catch (InterruptedException | ExecutionException e) {
                         log.error("************* Error while sending create product event: {} *************", e.getMessage());
 

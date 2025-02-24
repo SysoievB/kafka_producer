@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductCreateEvent {
+public class ProductCreatedEvent {
     String productId;
     String title;
     BigDecimal price;
