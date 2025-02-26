@@ -1,5 +1,6 @@
 package com.kafka_tutorial;
 
+import com.shared_core_library.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -26,7 +27,7 @@ public class ProductService {
                 ))
                 .map(productCreatedEvent -> {
                     try {
-                        log.info("*************Before creating product event: {}*************", productCreatedEvent);
+                        log.info("*************Before creating product event: {}*************", productCreatedEvent.toString());
                         SendResult<String, ProductCreatedEvent> result =
                                 kafkaTemplate.send(
                                         "product-created-event-topic",

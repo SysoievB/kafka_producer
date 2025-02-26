@@ -1,5 +1,6 @@
 package com.kafka_tutorial;
 
+import com.shared_core_library.ProductCreatedEvent;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
