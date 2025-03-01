@@ -3,6 +3,7 @@ package com.kafka_tutorial;
 import com.shared_core_library.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
@@ -28,12 +29,16 @@ public class ProductService {
                 .map(productCreatedEvent -> {
                     try {
                         log.info("*************Before creating product event: {}*************", productCreatedEvent.toString());
-                        SendResult<String, ProductCreatedEvent> result =
-                                kafkaTemplate.send(
-                                        "product-created-event-topic",
-                                        productCreatedEvent.getProductId(),
-                                        productCreatedEvent
-                                ).get();
+
+                        ProducerRecord<String, ProductCreatedEvent> record = new ProducerRecord<>(
+                                "product-created-event-topic",
+                                productCreatedEvent.getProductId(),
+                                productCreatedEvent
+                        );
+                        record.headers().add("messageId", UUID.randomUUID().toString().getBytes());
+
+                        SendResult<String, ProductCreatedEvent> result = kafkaTemplate.send(record).get();
+
                         log.info("*************Partition: {}*************", result.getRecordMetadata().partition());
                         log.info("*************Topic: {}*************", result.getRecordMetadata().topic());
                         log.info("*************Offset: {}*************", result.getRecordMetadata().offset());
